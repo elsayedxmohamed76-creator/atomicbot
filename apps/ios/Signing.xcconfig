@@ -1,0 +1,17 @@
+// Default signing values for shared/repo builds.
+// Auto-selected local team overrides live in .local-signing.xcconfig (git-ignored).
+// Manual local overrides can go in LocalSigning.xcconfig (git-ignored).
+
+ATOMICBOT_CODE_SIGN_STYLE = Manual
+ATOMICBOT_DEVELOPMENT_TEAM = Y5PE65HELJ
+
+ATOMICBOT_APP_BUNDLE_ID = ai.atomicbot.ios
+ATOMICBOT_SHARE_BUNDLE_ID = ai.atomicbot.ios.share
+
+ATOMICBOT_APP_PROFILE = ai.atomicbot.ios Development
+ATOMICBOT_SHARE_PROFILE = ai.atomicbot.ios.share Development
+
+// Keep local includes after defaults: xcconfig is evaluated top-to-bottom,
+// so later assignments in local files override the defaults above.
+#include? ".local-signing.xcconfig"
+#include? "LocalSigning.xcconfig"

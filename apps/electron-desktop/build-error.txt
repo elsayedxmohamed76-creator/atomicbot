@@ -1,0 +1,32 @@
+
+> atomicbot-desktop@1.0.43 dist:local:win
+> npm run rebuild && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false ELECTRON_BUILDER_COMPRESSION_LEVEL=1 npm run dist -- --publish never --win
+
+
+> atomicbot-desktop@1.0.43 rebuild
+> electron-rebuild -f -w node-pty
+
+- Searching dependency tree
+(node:24372) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:24372) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+
+Compilazione dei progetti nella soluzione uno alla volta. Per abilitare la compilazione parallela, aggiungere l'opzione "-m".
+C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(486,5): error MSB8040: per questo progetto sono richieste librerie con mitigazioni Spectre. Installarle dal Programma di installazione di Visual Studio (scheda Singoli componenti) per tutti i set di strumenti e le architetture usate. Per altre informazioni, vedere https://aka.ms/Ofhn4c [C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-pty\build\conpty.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(486,5): error MSB8040: per questo progetto sono richieste librerie con mitigazioni Spectre. Installarle dal Programma di installazione di Visual Studio (scheda Singoli componenti) per tutti i set di strumenti e le architetture usate. Per altre informazioni, vedere https://aka.ms/Ofhn4c [C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-pty\build\conpty_console_list.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(486,5): error MSB8040: per questo progetto sono richieste librerie con mitigazioni Spectre. Installarle dal Programma di installazione di Visual Studio (scheda Singoli componenti) per tutti i set di strumenti e le architetture usate. Per altre informazioni, vedere https://aka.ms/Ofhn4c [C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-pty\build\deps\winpty\src\winpty-agent.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(486,5): error MSB8040: per questo progetto sono richieste librerie con mitigazioni Spectre. Installarle dal Programma di installazione di Visual Studio (scheda Singoli componenti) per tutti i set di strumenti e le architetture usate. Per altre informazioni, vedere https://aka.ms/Ofhn4c [C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-pty\build\deps\winpty\src\winpty.vcxproj]
+Error: `C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe` failed with exit code: 1
+    at ChildProcess.<anonymous> (C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-gyp\lib\build.js:219:23)
+    at ChildProcess.emit (node:events:508:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:294:12)
+
+Ô£û Rebuild Failed
+
+An unhandled error occurred inside electron-rebuild
+node-gyp failed to rebuild 'C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-pty'
+
+Error: node-gyp failed to rebuild 'C:\Users\Mohamed\atomicbot\apps\electron-desktop\node_modules\node-pty'
+    at ChildProcess.<anonymous> (file:///C:/Users/Mohamed/atomicbot/apps/electron-desktop/node_modules/@electron/rebuild/lib/module-type/node-gyp/node-gyp.js:114:24)
+    at ChildProcess.emit (node:events:508:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:294:12)

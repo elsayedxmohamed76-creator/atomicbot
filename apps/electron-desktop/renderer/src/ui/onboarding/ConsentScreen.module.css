@@ -1,0 +1,66 @@
+/* ── ConsentScreen ────────────────────────────────────── */
+
+.UiConsentStage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.UiConsentCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.UiConsentTitle {
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 32px;
+  user-select: none;
+  margin-bottom: 4px;
+}
+
+.UiConsentSubtitle {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  color: #a0a0a0;
+  margin-bottom: 32px;
+  user-select: none;
+}
+
+.UiConsentCenter :global(.UiPrimaryButton) {
+  margin-top: 8px;
+  width: 280px;
+  min-width: 280px;
+  box-sizing: border-box;
+}
+
+.UiConsentSecondaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px;
+  min-width: 280px;
+  box-sizing: border-box;
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 22px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+
+.UiConsentSecondaryButton:hover {
+  opacity: 0.8;
+}

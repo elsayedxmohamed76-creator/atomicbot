@@ -1,0 +1,12 @@
+{
+  "name": "@atomicbot/llm-task",
+  "version": "2026.2.22",
+  "private": true,
+  "description": "AtomicBot JSON-only LLM task plugin",
+  "type": "module",
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

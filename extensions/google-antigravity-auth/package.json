@@ -1,0 +1,15 @@
+{
+  "name": "@atomicbot/google-antigravity-auth",
+  "version": "2026.2.22",
+  "private": true,
+  "description": "AtomicBot Google Antigravity OAuth provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "atomicbot": "workspace:*"
+  },
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@atomicbot/discord",
+  "version": "2026.2.22",
+  "description": "AtomicBot Discord channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "atomicbot": "workspace:*"
+  },
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

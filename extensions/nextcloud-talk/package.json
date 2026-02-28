@@ -1,0 +1,33 @@
+{
+  "name": "@atomicbot/nextcloud-talk",
+  "version": "2026.2.22",
+  "description": "AtomicBot Nextcloud Talk channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "atomicbot": "workspace:*"
+  },
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "nextcloud-talk",
+      "label": "Nextcloud Talk",
+      "selectionLabel": "Nextcloud Talk (self-hosted)",
+      "docsPath": "/channels/nextcloud-talk",
+      "docsLabel": "nextcloud-talk",
+      "blurb": "Self-hosted chat via Nextcloud Talk webhook bots.",
+      "aliases": [
+        "nc-talk",
+        "nc"
+      ],
+      "order": 65,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@atomicbot/nextcloud-talk",
+      "localPath": "extensions/nextcloud-talk",
+      "defaultChoice": "npm"
+    }
+  }
+}

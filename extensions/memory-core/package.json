@@ -1,0 +1,18 @@
+{
+  "name": "@atomicbot/memory-core",
+  "version": "2026.2.22",
+  "private": true,
+  "description": "AtomicBot core memory search plugin",
+  "type": "module",
+  "devDependencies": {
+    "atomicbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "atomicbot": ">=2026.1.26"
+  },
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

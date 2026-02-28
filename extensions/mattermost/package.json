@@ -1,0 +1,28 @@
+{
+  "name": "@atomicbot/mattermost",
+  "version": "2026.2.22",
+  "description": "AtomicBot Mattermost channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "atomicbot": "workspace:*"
+  },
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "mattermost",
+      "label": "Mattermost",
+      "selectionLabel": "Mattermost (plugin)",
+      "docsPath": "/channels/mattermost",
+      "docsLabel": "mattermost",
+      "blurb": "self-hosted Slack-style chat; install the plugin to enable.",
+      "order": 65
+    },
+    "install": {
+      "npmSpec": "@atomicbot/mattermost",
+      "localPath": "extensions/mattermost",
+      "defaultChoice": "npm"
+    }
+  }
+}

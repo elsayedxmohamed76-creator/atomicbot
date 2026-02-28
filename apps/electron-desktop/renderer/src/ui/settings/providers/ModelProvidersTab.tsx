@@ -1,0 +1,414 @@
+import React from "react";
+import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
+import { settingsStyles as ps } from "../SettingsPage";
+
+import { Modal, TextInput } from "@shared/kit";
+import mp from "./ModelProvidersTab.module.css";
+import {
+  MODEL_PROVIDER_BY_ID,
+  MODEL_PROVIDERS,
+  type ModelProvider,
+  resolveProviderIconUrl,
+} from "@shared/models/providers";
+import {
+  formatModelMeta,
+  getModelTier,
+  type ModelEntry,
+  TIER_INFO,
+} from "@shared/models/modelPresentation";
+import type { ConfigData } from "@store/slices/configSlice";
+import { ProviderTile } from "./ProviderTile";
+import { ApiKeyModalContent } from "./ApiKeyModalContent";
+import { OAuthModalContent } from "./OAuthModalContent";
+import { useModelProvidersState } from "./useModelProvidersState";
+
+type GatewayRpc = {
+  request: <T = unknown>(method: string, params?: unknown) => Promise<T>;
+};
+
+type ConfigSnapshotLike = {
+  hash?: string;
+  config?: ConfigData;
+};
+
+// ── Main tab component ───────────────────────────────────────────────
+export function ModelProvidersTab(props: {
+  view: "models" | "providers";
+  isPaidMode: boolean;
+  gw: GatewayRpc;
+  configSnap: ConfigSnapshotLike | null;
+  reload: () => Promise<void>;
+  onError: (value: string | null) => void;
+}) {
+  const { view } = props;
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleProviderConfigured = React.useCallback(
+    (provider: ModelProvider) => {
+      navigate(`/settings/ai-models?provider=${provider}`);
+    },
+    [navigate]
+  );
+
+  const state = useModelProvidersState({
+    ...props,
+    onProviderConfigured: view === "providers" ? handleProviderConfigured : undefined,
+  });
+
+  // On mount: if URL has ?provider= (redirect after adding a provider),
+  // pre-select that provider filter and clean up the param.
+  React.useEffect(() => {
+    const p = searchParams.get("provider");
+    if (!props.isPaidMode && p && MODEL_PROVIDER_BY_ID[p as ModelProvider]) {
+      state.setProviderFilter(p as ModelProvider);
+    }
+    if (p) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("provider");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
+
+  const title = view === "models" ? "AI Models" : "Providers & API Keys";
+
+  return (
+    <div className={ps.UiSettingsContentInner}>
+      <div className={ps.UiSettingsTabTitle}>{title}</div>
+
+      {view === "models" ? (
+        <ModelsView state={state} isPaidMode={props.isPaidMode} />
+      ) : (
+        <ProvidersView state={state} />
+      )}
+
+      {/* ── Provider auth modal (API key or OAuth) ──── */}
+      <Modal
+        open={!!state.modalProviderInfo}
+        onClose={() => state.setModalProvider(null)}
+        aria-label={
+          state.modalProviderInfo?.authType === "oauth" ? "Sign in to provider" : "Enter API key"
+        }
+      >
+        {state.modalProviderInfo ? (
+          state.modalProviderInfo.authType === "oauth" ? (
+            <OAuthModalContent
+              provider={state.modalProviderInfo}
+              configHash={typeof props.configSnap?.hash === "string" ? props.configSnap.hash : null}
+              onSuccess={() => {
+                const providerId = state.modalProviderInfo!.id;
+                state.setModalProvider(null);
+                void props.reload();
+                if (view === "providers") {
+                  navigate(`/settings/ai-models?provider=${providerId}`);
+                }
+              }}
+              onClose={() => state.setModalProvider(null)}
+            />
+          ) : (
+            <ApiKeyModalContent
+              provider={state.modalProviderInfo}
+              busy={state.busyProvider === state.modalProviderInfo.id}
+              onSave={(key) => void state.saveProviderApiKey(state.modalProviderInfo!.id, key)}
+              onSaveSetupToken={(token) =>
+                void state.saveProviderSetupToken(state.modalProviderInfo!.id, token)
+              }
+              onPaste={state.pasteFromClipboard}
+              onClose={() => state.setModalProvider(null)}
+            />
+          )
+        ) : null}
+      </Modal>
+    </div>
+  );
+}
+
+// ── Models sub-view ──────────────────────────────────────────────────
+
+function ModelsView(props: {
+  state: ReturnType<typeof useModelProvidersState>;
+  isPaidMode: boolean;
+}) {
+  const {
+    activeModelId,
+    activeModelEntry,
+    activeModelTier,
+    activeModelMeta,
+    activeProviderKey,
+    activeProviderInfo,
+    strictConfiguredProviders,
+    sortedModels,
+    visibleProviders,
+    modelSearch,
+    setModelSearch,
+    modelsLoading,
+    modelBusy,
+    providerFilter,
+    saveDefaultModel,
+    toggleProviderFilter,
+  } = props.state;
+  const activeModelDescription = props.isPaidMode
+    ? activeModelMeta
+    : `${activeProviderInfo?.name ?? activeProviderKey ?? "unknown"}${activeModelMeta ? ` · ${activeModelMeta}` : ""}`;
+
+  return (
+    <section className={ps.UiSettingsSection}>
+      {/* Active model card */}
+      {activeModelId ? (
+        <div>
+          <div className={mp.UiSettingsSubtitle}>Live Model</div>
+          <div className={mp.UiActiveModelCard}>
+            <div className={mp.UiActiveModelInfo}>
+              <div className="UiProviderContent">
+                <div className="UiProviderHeader">
+                  <span className="UiProviderName">{activeModelEntry?.name ?? activeModelId}</span>
+                  {activeModelTier ? (
+                    <span
+                      className={`UiProviderBadge UiModelTierBadge--${activeModelTier}`}
+                      title={TIER_INFO[activeModelTier].description}
+                    >
+                      {TIER_INFO[activeModelTier].label}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              {activeModelDescription ? (
+                <div className="UiProviderDescription">{activeModelDescription}</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="UiSectionSubtitle">No model selected yet. Choose one below.</div>
+      )}
+
+      <div className={mp.UiSettingsSubtitle}>Change Model</div>
+      <div className="UiInputRow">
+        <TextInput
+          type="text"
+          value={modelSearch}
+          onChange={setModelSearch}
+          placeholder="Search models…"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          disabled={modelsLoading || modelBusy}
+          isSearch={true}
+        />
+      </div>
+
+      {/* Provider filter chips + Add Provider link */}
+      {!props.isPaidMode ? (
+        <ProviderFilterChips
+          strictConfiguredProviders={strictConfiguredProviders}
+          providerFilter={providerFilter}
+          onToggle={toggleProviderFilter}
+        />
+      ) : null}
+
+      <ModelList
+        sortedModels={sortedModels}
+        visibleProviders={visibleProviders}
+        strictConfiguredProviders={strictConfiguredProviders}
+        modelSearch={modelSearch}
+        modelsLoading={modelsLoading}
+        modelBusy={modelBusy}
+        activeModelId={activeModelId}
+        hideProviderGroupTitle={props.isPaidMode}
+        onSelectModel={saveDefaultModel}
+      />
+    </section>
+  );
+}
+
+// ── Provider filter chips ────────────────────────────────────────────
+
+function ProviderFilterChips(props: {
+  strictConfiguredProviders: Set<ModelProvider>;
+  providerFilter: ModelProvider | null;
+  onToggle: (id: ModelProvider) => void;
+}) {
+  const { strictConfiguredProviders, providerFilter, onToggle } = props;
+
+  return (
+    <div className={mp.UiProviderFilterRow}>
+      {strictConfiguredProviders.size > 1 ? (
+        <>
+          <button
+            type="button"
+            className={`${mp.UiProviderFilterChip}${!providerFilter ? ` ${mp["UiProviderFilterChip--active"]}` : ""}`}
+            onClick={() => onToggle(providerFilter!)}
+          >
+            All
+          </button>
+          {MODEL_PROVIDERS.filter((p) => strictConfiguredProviders.has(p.id)).map((p) => {
+            const active = providerFilter === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={`${mp.UiProviderFilterChip}${active ? ` ${mp["UiProviderFilterChip--active"]}` : ""}`}
+                onClick={() => onToggle(p.id)}
+              >
+                <img
+                  className={mp.UiProviderFilterChipIcon}
+                  src={resolveProviderIconUrl(p.id)}
+                  alt=""
+                  aria-hidden="true"
+                />
+                {MODEL_PROVIDER_BY_ID[p.id].name}
+              </button>
+            );
+          })}
+        </>
+      ) : null}
+      <NavLink
+        to="/settings/ai-providers"
+        className={`${mp.UiProviderFilterChip} ${mp["UiProviderFilterChip--add"]}`}
+      >
+        + Add Provider
+      </NavLink>
+    </div>
+  );
+}
+
+// ── Model list with grouping ─────────────────────────────────────────
+
+function ModelList(props: {
+  sortedModels: ModelEntry[];
+  visibleProviders: Set<ModelProvider>;
+  strictConfiguredProviders: Set<ModelProvider>;
+  modelSearch: string;
+  modelsLoading: boolean;
+  modelBusy: boolean;
+  activeModelId: string | null;
+  hideProviderGroupTitle: boolean;
+  onSelectModel: (modelId: string) => Promise<void>;
+}) {
+  const {
+    sortedModels,
+    visibleProviders,
+    strictConfiguredProviders,
+    modelSearch,
+    modelsLoading,
+    modelBusy,
+    activeModelId,
+    hideProviderGroupTitle,
+    onSelectModel,
+  } = props;
+
+  if (strictConfiguredProviders.size === 0) {
+    return (
+      <div className="UiSectionSubtitle" style={{ marginTop: 10 }}>
+        No providers configured yet.{" "}
+        <NavLink to="/settings/ai-providers" className="UiLink">
+          Add an API key
+        </NavLink>{" "}
+        to unlock model choices.
+      </div>
+    );
+  }
+
+  if (modelsLoading) {
+    return (
+      <div className="UiSectionSubtitle" style={{ marginTop: 10 }}>
+        Loading models…
+      </div>
+    );
+  }
+
+  const q = modelSearch.trim().toLowerCase();
+  const filtered = sortedModels
+    .filter((m) => visibleProviders.has(m.provider as ModelProvider))
+    .filter((m) => {
+      if (!q) {
+        return true;
+      }
+      return m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q);
+    });
+
+  const grouped = filtered.reduce(
+    (acc: Record<string, ModelEntry[]>, m: ModelEntry) => {
+      (acc[m.provider] ??= []).push(m);
+      return acc;
+    },
+    {} as Record<string, ModelEntry[]>
+  );
+
+  const groups = Object.entries(grouped);
+  if (groups.length === 0) {
+    return (
+      <div className="UiSectionSubtitle" style={{ marginTop: 10 }}>
+        No models found for configured providers.
+      </div>
+    );
+  }
+
+  return (
+    <div className="UiModelList" aria-label="Model list">
+      {groups.map(([provider, entries]) => (
+        <div key={provider} className="UiModelGroup">
+          {!hideProviderGroupTitle ? <div className="UiModelGroupTitle">{provider}</div> : null}
+          {entries.map((model) => {
+            const modelKey = `${model.provider}/${model.id}`;
+            const tier = getModelTier(model);
+            const meta = formatModelMeta(model);
+            const selected = activeModelId === modelKey;
+            return (
+              <label
+                key={modelKey}
+                className={`UiProviderOption ${selected ? "UiProviderOption--selected" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="model"
+                  value={modelKey}
+                  checked={selected}
+                  onChange={() => void onSelectModel(modelKey)}
+                  className="UiProviderRadio"
+                  disabled={modelBusy}
+                />
+                <div className="UiProviderContent">
+                  <div className="UiProviderHeader">
+                    <span className="UiProviderName">{model.name || model.id}</span>
+                    {tier ? (
+                      <span
+                        className={`UiProviderBadge UiModelTierBadge--${tier}`}
+                        title={TIER_INFO[tier].description}
+                      >
+                        {TIER_INFO[tier].label}
+                      </span>
+                    ) : null}
+                  </div>
+                  {meta ? <div className="UiProviderDescription">{meta}</div> : null}
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Providers sub-view ───────────────────────────────────────────────
+
+function ProvidersView(props: { state: ReturnType<typeof useModelProvidersState> }) {
+  const { isProviderConfigured, setModalProvider } = props.state;
+
+  return (
+    <div className="UiSkillsScroll" style={{ maxHeight: "none" }}>
+      <div className="UiSkillsGrid">
+        {MODEL_PROVIDERS.map((p) => (
+          <ProviderTile
+            key={p.id}
+            provider={p}
+            configured={isProviderConfigured(p.id)}
+            onClick={() => setModalProvider(p.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

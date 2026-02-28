@@ -1,0 +1,13 @@
+[electron-desktop] obsidian-cli runtime dir: C:\Users\Mohamed\atomicbot\apps\electron-desktop\.obsidian-cli-runtime
+[electron-desktop] obsidian-cli cache dir: C:\Users\Mohamed\atomicbot\apps\electron-desktop\.obsidian-cli-runtime\_cache\v0.2.3\win32-x64
+[electron-desktop] Downloading obsidian-cli: https://github.com/Yakitrak/notesmd-cli/releases/download/v0.2.3/obsidian-cli_0.2.3_windows_amd64.tar.gz
+[electron-desktop] Extracting obsidian-cli archive...
+Error: failed to extract tar.gz archive: tar: Option --force-local is not supported
+Usage:
+  List:    tar -tf <archive-filename>
+  Extract: tar -xf <archive-filename>
+  Create:  tar -cf <archive-filename> [filenames...]
+  Help:    tar --help
+    at extractTarGz (file:///C:/Users/Mohamed/atomicbot/apps/electron-desktop/scripts/lib/script-platform.mjs:166:11)
+    at main (file:///C:/Users/Mohamed/atomicbot/apps/electron-desktop/scripts/fetch-obsidian-cli-runtime.mjs:203:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

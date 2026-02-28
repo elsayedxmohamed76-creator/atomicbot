@@ -1,0 +1,16 @@
+{
+  "name": "atomicbot",
+  "version": "2026.2.12",
+  "description": "Compatibility shim that forwards to atomicbot",
+  "bin": {
+    "atomicbot": "./bin/atomicbot.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./cli-entry": "./bin/atomicbot.js"
+  },
+  "dependencies": {
+    "atomicbot": "workspace:*"
+  }
+}

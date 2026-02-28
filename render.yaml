@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: atomicbot
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: SETUP_PASSWORD
+        sync: false
+      - key: ATOMICBOT_STATE_DIR
+        value: /data/.atomicbot
+      - key: ATOMICBOT_WORKSPACE_DIR
+        value: /data/workspace
+      - key: ATOMICBOT_GATEWAY_TOKEN
+        generateValue: true
+    disk:
+      name: atomicbot-data
+      mountPath: /data
+      sizeGB: 1

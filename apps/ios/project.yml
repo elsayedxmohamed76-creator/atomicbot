@@ -1,0 +1,232 @@
+name: AtomicBot
+options:
+  bundleIdPrefix: ai.atomicbot
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+
+packages:
+  AtomicBotKit:
+    path: ../shared/AtomicBotKit
+  Swabble:
+    path: ../../Swabble
+
+schemes:
+  AtomicBot:
+    shared: true
+    build:
+      targets:
+        AtomicBot: all
+    test:
+      targets:
+        - AtomicBotTests
+
+targets:
+  AtomicBot:
+    type: application
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: Sources
+    dependencies:
+      - target: AtomicBotShareExtension
+        embed: true
+      - target: AtomicBotWatchApp
+      - package: AtomicBotKit
+      - package: AtomicBotKit
+        product: AtomicBotChatUI
+      - package: AtomicBotKit
+        product: AtomicBotProtocol
+      - package: Swabble
+        product: SwabbleKit
+      - sdk: AppIntents.framework
+    preBuildScripts:
+      - name: SwiftFormat (lint)
+        basedOnDependencyAnalysis: false
+        inputFileLists:
+          - $(SRCROOT)/SwiftSources.input.xcfilelist
+        script: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          if ! command -v swiftformat >/dev/null 2>&1; then
+            echo "error: swiftformat not found (brew install swiftformat)" >&2
+            exit 1
+          fi
+          swiftformat --lint --config "$SRCROOT/../../.swiftformat" \
+            --filelist "$SRCROOT/SwiftSources.input.xcfilelist"
+      - name: SwiftLint
+        basedOnDependencyAnalysis: false
+        inputFileLists:
+          - $(SRCROOT)/SwiftSources.input.xcfilelist
+        script: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          if ! command -v swiftlint >/dev/null 2>&1; then
+            echo "error: swiftlint not found (brew install swiftlint)" >&2
+            exit 1
+          fi
+          swiftlint lint --config "$SRCROOT/.swiftlint.yml" --use-script-input-file-lists
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_ENTITLEMENTS: Sources/AtomicBot.entitlements
+        CODE_SIGN_STYLE: "$(ATOMICBOT_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(ATOMICBOT_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(ATOMICBOT_APP_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(ATOMICBOT_APP_PROFILE)"
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        ENABLE_APPINTENTS_METADATA: NO
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: AtomicBot
+        CFBundleIconName: AppIcon
+        CFBundleURLTypes:
+          - CFBundleURLName: ai.atomicbot.ios
+            CFBundleURLSchemes:
+              - atomicbot
+        CFBundleShortVersionString: "2026.2.21"
+        CFBundleVersion: "20260220"
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - audio
+          - remote-notification
+        BGTaskSchedulerPermittedIdentifiers:
+          - ai.atomicbot.ios.bgrefresh
+        NSLocalNetworkUsageDescription: AtomicBot discovers and connects to your AtomicBot gateway on the local network.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsInWebContent: true
+        NSBonjourServices:
+          - _atomicbot-gw._tcp
+        NSCameraUsageDescription: AtomicBot can capture photos or short video clips when requested via the gateway.
+        NSLocationWhenInUseUsageDescription: AtomicBot uses your location when you allow location sharing.
+        NSLocationAlwaysAndWhenInUseUsageDescription: AtomicBot can share your location in the background when you enable Always.
+        NSMicrophoneUsageDescription: AtomicBot needs microphone access for voice wake.
+        NSSpeechRecognitionUsageDescription: AtomicBot uses on-device speech recognition for voice wake.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+
+  AtomicBotShareExtension:
+    type: app-extension
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: ShareExtension
+    dependencies:
+      - package: AtomicBotKit
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: "$(ATOMICBOT_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(ATOMICBOT_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(ATOMICBOT_SHARE_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(ATOMICBOT_SHARE_PROFILE)"
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+    info:
+      path: ShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: AtomicBot Share
+        CFBundleShortVersionString: "2026.2.21"
+        CFBundleVersion: "20260220"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+              NSExtensionActivationSupportsMovieWithMaxCount: 1
+
+  AtomicBotWatchApp:
+    type: application.watchapp2
+    platform: watchOS
+    deploymentTarget: "11.0"
+    sources:
+      - path: WatchApp
+    dependencies:
+      - target: AtomicBotWatchExtension
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(ATOMICBOT_WATCH_APP_BUNDLE_ID)"
+    info:
+      path: WatchApp/Info.plist
+      properties:
+        CFBundleDisplayName: AtomicBot
+        CFBundleShortVersionString: "2026.2.21"
+        CFBundleVersion: "20260220"
+        WKCompanionAppBundleIdentifier: "$(ATOMICBOT_APP_BUNDLE_ID)"
+        WKWatchKitApp: true
+
+  AtomicBotWatchExtension:
+    type: watchkit2-extension
+    platform: watchOS
+    deploymentTarget: "11.0"
+    sources:
+      - path: WatchExtension/Sources
+    dependencies:
+      - sdk: WatchConnectivity.framework
+      - sdk: UserNotifications.framework
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(ATOMICBOT_WATCH_EXTENSION_BUNDLE_ID)"
+    info:
+      path: WatchExtension/Info.plist
+      properties:
+        CFBundleDisplayName: AtomicBot
+        CFBundleShortVersionString: "2026.2.21"
+        CFBundleVersion: "20260220"
+        NSExtension:
+          NSExtensionAttributes:
+            WKAppBundleIdentifier: "$(ATOMICBOT_WATCH_APP_BUNDLE_ID)"
+          NSExtensionPointIdentifier: com.apple.watchkit
+
+  AtomicBotTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: AtomicBot
+      - package: Swabble
+        product: SwabbleKit
+      - sdk: AppIntents.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ai.atomicbot.ios.tests
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AtomicBot.app/AtomicBot"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    info:
+      path: Tests/Info.plist
+      properties:
+        CFBundleDisplayName: AtomicBotTests
+        CFBundleShortVersionString: "2026.2.21"
+        CFBundleVersion: "20260220"

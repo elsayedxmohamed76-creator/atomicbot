@@ -1,0 +1,15 @@
+{
+  "name": "@atomicbot/copilot-proxy",
+  "version": "2026.2.22",
+  "private": true,
+  "description": "AtomicBot Copilot Proxy provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "atomicbot": "workspace:*"
+  },
+  "atomicbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
